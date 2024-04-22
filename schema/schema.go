@@ -28,7 +28,7 @@ func (s *Schema) GetField(name string) *Field {
 	return s.fieldMap[name]
 }
 
-// 返回dest成员变量的值
+// 返回dest成员变量的值，从对象中找到对应值，按顺序平铺
 func (s *Schema) RecordValues(dest interface{}) []interface{} {
 	//间接获取，若用reflect.Elem对结构体会panic,而indirect可兼容结构体和指针
 	destValue := reflect.Indirect(reflect.ValueOf(dest))
@@ -44,7 +44,7 @@ type ITableName interface {
 	TableName() string
 }
 
-// 解析表名dest和dialect
+// 解析表名dest和dialect，将任意对象解析为Schema实例
 func Parse(dest interface{}, d dialect.Dialect) *Schema {
 	modelType := reflect.Indirect(reflect.ValueOf(dest)).Type()
 	var tableName string

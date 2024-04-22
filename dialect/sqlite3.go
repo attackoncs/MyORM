@@ -12,7 +12,7 @@ type sqlite3 struct {
 
 var _ Dialect = (*sqlite3)(nil)
 
-// 包在第一次加载时，将sqlite3的dialect自动注册到全局
+// 包在第一次加载时，将sqlite3数据库名和结构体指针添加到全局哈希表
 func init() {
 	RegisterDialect("sqlite3", &sqlite3{})
 }

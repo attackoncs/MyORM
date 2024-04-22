@@ -2,6 +2,7 @@ package session
 
 import (
 	"database/sql"
+	"myorm/clause"
 	"myorm/dialect"
 	"myorm/mylog"
 	"myorm/schema"
@@ -12,7 +13,8 @@ import (
 type Session struct {
 	db       *sql.DB //sql.Open连接数据库成功后返回的指针
 	dialect  dialect.Dialect
-	refTable *schema.Schema
+	refTable *schema.Schema  //模式
+	clause   clause.Clause   //子句
 	sql      strings.Builder //拼接sql语句
 	sqlVars  []interface{}   //sql语句中占位符的对应值
 }
@@ -27,6 +29,7 @@ func New(db *sql.DB, dialect dialect.Dialect) *Session {
 func (s *Session) Clear() {
 	s.sql.Reset()
 	s.sqlVars = nil
+	s.clause = clause.Clause{}
 }
 
 // 获得数据库句柄指针
