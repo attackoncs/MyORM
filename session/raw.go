@@ -2,20 +2,25 @@ package session
 
 import (
 	"database/sql"
+	"myorm/dialect"
 	"myorm/mylog"
+	"myorm/schema"
 	"strings"
 )
 
 // 核心结构 Session
 type Session struct {
-	db      *sql.DB         //sql.Open连接数据库成功后返回的指针
-	sql     strings.Builder //拼接sql语句
-	sqlVars []interface{}   //sql语句中占位符的对应值
+	db       *sql.DB //sql.Open连接数据库成功后返回的指针
+	dialect  dialect.Dialect
+	refTable *schema.Schema
+	sql      strings.Builder //拼接sql语句
+	sqlVars  []interface{}   //sql语句中占位符的对应值
 }
 
 // 创建session实例
-func New(db *sql.DB) *Session {
-	return &Session{db: db}
+func New(db *sql.DB, dialect dialect.Dialect) *Session {
+	return &Session{db: db,
+		dialect: dialect}
 }
 
 // 清理session

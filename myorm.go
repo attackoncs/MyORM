@@ -2,13 +2,15 @@ package myorm
 
 import (
 	"database/sql"
+	"myorm/dialect"
 	"myorm/mylog"
 	"myorm/session"
 )
 
 // 核心数据结构，负责与用户的交互的入口
 type Engine struct {
-	db *sql.DB
+	db      *sql.DB
+	dialect dialect.Dialect
 }
 
 // 创建engine实例，连接数据库并检查连接是否正常。
@@ -23,7 +25,13 @@ func NewEngine(driver, source string) (e *Engine, err error) {
 		mylog.Error(err)
 		return
 	}
-	e = &Engine{db: db}
+
+	dial, ok := dialect.GetDialect(driver) //获取driver对应的dialect
+	if !ok {
+		mylog.Errorf("dialect %s Not Found", driver)
+		return
+	}
+	e = &Engine{db: db, dialect: dial}
 	mylog.Info("Connecct database success")
 	return
 }
@@ -38,5 +46,5 @@ func (e *Engine) Close() {
 
 // 通过engine实例创建会话，与数据库进行交互
 func (e *Engine) NewSession() *session.Session {
-	return session.New(e.db)
+	return session.New(e.db, e.dialect)
 }
