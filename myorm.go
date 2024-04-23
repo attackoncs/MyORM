@@ -48,3 +48,26 @@ func (e *Engine) Close() {
 func (e *Engine) NewSession() *session.Session {
 	return session.New(e.db, e.dialect)
 }
+
+// 函数接口类型
+type TxFunc func(*session.Session) (interface{}, error)
+
+// https://stackoverflow.com/questions/16184238/database-sql-tx-detecting-commit-or-rollback
+// 事务执行一段sql语句，若没错误，就自动提交
+func (e *Engine) Transaction(f TxFunc) (result interface{}, err error) {
+	s := e.NewSession()
+	if err := s.Begin(); err != nil {
+		return nil, err
+	}
+	defer func() {
+		if p := recover(); p != nil {
+			_ = s.Rollback()
+			panic(p) //在Rollback后重新panic
+		} else if err != nil {
+			_ = s.Rollback() //err非空，不改变数据库数据
+		} else {
+			err = s.Commit() //err空，若commit返回错误则更新错误
+		}
+	}()
+	return f(s)
+}

@@ -13,11 +13,21 @@ import (
 type Session struct {
 	db       *sql.DB //sql.Open连接数据库成功后返回的指针
 	dialect  dialect.Dialect
+	tx       *sql.Tx         //事务
 	refTable *schema.Schema  //模式
 	clause   clause.Clause   //子句
 	sql      strings.Builder //拼接sql语句
 	sqlVars  []interface{}   //sql语句中占位符的对应值
 }
+
+type CommonDB interface {
+	Query(query string, args ...interface{}) (*sql.Rows, error)
+	QueryRow(query string, args ...interface{}) *sql.Row
+	Exec(query string, args ...interface{}) (sql.Result, error)
+}
+
+var _ CommonDB = (*sql.DB)(nil)
+var _ CommonDB = (*sql.Tx)(nil)
 
 // 创建session实例
 func New(db *sql.DB, dialect dialect.Dialect) *Session {
@@ -33,7 +43,10 @@ func (s *Session) Clear() {
 }
 
 // 获得数据库句柄指针
-func (s *Session) DB() *sql.DB {
+func (s *Session) DB() CommonDB {
+	if s.tx != nil {
+		return s.tx
+	}
 	return s.db
 }
 
