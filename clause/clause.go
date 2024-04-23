@@ -18,6 +18,9 @@ const (
 	LIMIT
 	WHERE
 	ORDERBY
+	UPDATE
+	DELETE
+	COUNT
 )
 
 // 根据Type调用对应的generator，生成子句对应的SQL语句
