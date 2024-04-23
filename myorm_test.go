@@ -4,6 +4,7 @@ import (
 	"errors"
 	_ "github.com/mattn/go-sqlite3"
 	"myorm/session"
+	"reflect"
 	"testing"
 )
 
@@ -64,5 +65,20 @@ func transactionRollback(t *testing.T) {
 	})
 	if err == nil || s.HasTable() {
 		t.Fatal("failed to rollback")
+	}
+}
+
+func TestEngine_Migrate(t *testing.T) {
+	e := OpenDB(t)
+	defer e.Close()
+	s := e.NewSession()
+	_, _ = s.Raw("DROP TABLE IF EXISTS User;").Exec()
+	_, _ = s.Raw("CREATE TABLE User(Name text PRIMARY KEY, XXX integer);").Exec()
+	_, _ = s.Raw("INSERT INTO User(`Name`) values (?), (?)", "Tom", "Sam").Exec()
+	e.Migrate(&User{})
+	rows, _ := s.Raw("SELECT * FROM User").QueryRows()
+	columns, _ := rows.Columns()
+	if !reflect.DeepEqual(columns, []string{"Name", "Age"}) {
+		t.Fatal("Failed to migrate table User, got columns", columns)
 	}
 }
